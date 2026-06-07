@@ -19,10 +19,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Trash2, Edit2 } from "lucide-react";
 import type { Vendor } from "@workspace/api-client-react";
+import { ImageUpload } from "@/components/ImageUpload";
 
 const vendorSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
+  imageUrl: z.string().optional(),
   isActive: z.boolean().default(true),
   maxPlates: z.coerce.number().min(0).default(0),
 });
@@ -42,13 +44,20 @@ export default function AdminVendors() {
 
   const form = useForm<z.infer<typeof vendorSchema>>({
     resolver: zodResolver(vendorSchema),
-    defaultValues: { name: "", description: "", isActive: true, maxPlates: 0 },
+    defaultValues: { name: "", description: "", imageUrl: "", isActive: true, maxPlates: 0 },
   });
 
   const onSubmit = (values: z.infer<typeof vendorSchema>) => {
+    const payload = {
+      name: values.name,
+      description: values.description,
+      imageUrl: values.imageUrl || undefined,
+      isActive: values.isActive,
+      maxPlates: values.maxPlates,
+    };
     if (editingVendor) {
       updateVendor.mutate(
-        { id: editingVendor.id, data: values },
+        { id: editingVendor.id, data: payload },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getGetVendorsQueryKey() });
@@ -61,7 +70,7 @@ export default function AdminVendors() {
       );
     } else {
       createVendor.mutate(
-        { data: values },
+        { data: payload },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getGetVendorsQueryKey() });
@@ -79,6 +88,7 @@ export default function AdminVendors() {
     form.reset({
       name: vendor.name,
       description: vendor.description || "",
+      imageUrl: vendor.imageUrl || "",
       isActive: vendor.isActive,
       maxPlates: vendor.maxPlates || 0,
     });
@@ -103,7 +113,7 @@ export default function AdminVendors() {
     setIsOpen(open);
     if (!open) {
       setEditingVendor(null);
-      form.reset({ name: "", description: "", isActive: true, maxPlates: 0 });
+      form.reset({ name: "", description: "", imageUrl: "", isActive: true, maxPlates: 0 });
     }
   };
 
@@ -118,7 +128,7 @@ export default function AdminVendors() {
           <DialogTrigger asChild>
             <Button className="bg-primary hover:bg-primary/90 text-white">Add Vendor</Button>
           </DialogTrigger>
-          <DialogContent className="bg-card border-primary/20 text-white sm:max-w-[425px]">
+          <DialogContent className="bg-card border-primary/20 text-white sm:max-w-[440px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingVendor ? "Edit Vendor" : "Add Vendor"}</DialogTitle>
             </DialogHeader>
@@ -145,6 +155,22 @@ export default function AdminVendors() {
                       <FormLabel>Description</FormLabel>
                       <FormControl>
                         <Textarea className="bg-background/50 border-primary/20 text-white" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="imageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <ImageUpload
+                          label="Vendor Image"
+                          value={field.value ?? ""}
+                          onChange={field.onChange}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -189,14 +215,24 @@ export default function AdminVendors() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {vendors?.map(vendor => (
-          <Card key={vendor.id} className="bg-card/40 border-primary/10">
+          <Card key={vendor.id} className="bg-card/40 border-primary/10 overflow-hidden">
+            {vendor.imageUrl && (
+              <div className="h-32 w-full overflow-hidden">
+                <img
+                  src={vendor.imageUrl}
+                  alt={vendor.name}
+                  className="w-full h-full object-cover"
+                  onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+              </div>
+            )}
             <CardHeader className="pb-2 flex flex-row items-start justify-between">
               <div>
                 <CardTitle className="text-lg text-white">
                   {vendor.name}
                   {vendor.orderCount !== undefined && (
                     <span className="ml-2 text-xs font-normal text-zinc-400">
-                      — {vendor.orderCount} orders active
+                      — {vendor.orderCount} orders
                     </span>
                   )}
                 </CardTitle>

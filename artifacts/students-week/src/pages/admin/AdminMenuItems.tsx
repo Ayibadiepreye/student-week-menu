@@ -29,6 +29,7 @@ import {
   Layers, Utensils, Beef, SlidersHorizontal,
 } from "lucide-react";
 import type { MainDishFull, MainDishTypeFull, SideItem, ProteinItem } from "@workspace/api-client-react";
+import { ImageUpload } from "@/components/ImageUpload";
 
 type DeleteTarget =
   | { kind: "dish"; id: number; name: string }
@@ -88,8 +89,8 @@ export default function AdminMenuItems() {
 
   const [newDishForm, setNewDishForm] = useState<{ vendorId: number; name: string } | null>(null);
   const [newTypeForm, setNewTypeForm] = useState<{ dishId: number; name: string; imageUrl: string } | null>(null);
-  const [newSideForm, setNewSideForm] = useState<{ typeId: number; dishId: number; name: string; isComplementary: boolean } | null>(null);
-  const [newProteinForm, setNewProteinForm] = useState<{ typeId: number; dishId: number; name: string } | null>(null);
+  const [newSideForm, setNewSideForm] = useState<{ typeId: number; dishId: number; name: string; imageUrl: string; isComplementary: boolean } | null>(null);
+  const [newProteinForm, setNewProteinForm] = useState<{ typeId: number; dishId: number; name: string; imageUrl: string } | null>(null);
   const [configDialog, setConfigDialog] = useState<{ typeId: number; maxSides: number; maxProteins: number } | null>(null);
 
   const { data: vendors } = useGetVendors({}, { query: { queryKey: getGetVendorsQueryKey({}) } });
@@ -184,10 +185,10 @@ export default function AdminMenuItems() {
                         onAddType={() => setNewTypeForm({ dishId: dish.id, name: "", imageUrl: "" })}
                         onEditType={(id, data) => updateType.mutate({ id, data }, { onSuccess: invalidate })}
                         onDeleteType={(id, name) => setDeleteTarget({ kind: "type", id, name, dishId: dish.id })}
-                        onAddSide={(typeId) => setNewSideForm({ typeId, dishId: dish.id, name: "", isComplementary: false })}
+                        onAddSide={(typeId) => setNewSideForm({ typeId, dishId: dish.id, name: "", imageUrl: "", isComplementary: false })}
                         onEditSide={(id, data) => updateSide.mutate({ id, data }, { onSuccess: invalidate })}
                         onDeleteSide={(id, name, typeId) => setDeleteTarget({ kind: "side", id, name, typeId, dishId: dish.id })}
-                        onAddProtein={(typeId) => setNewProteinForm({ typeId, dishId: dish.id, name: "" })}
+                        onAddProtein={(typeId) => setNewProteinForm({ typeId, dishId: dish.id, name: "", imageUrl: "" })}
                         onEditProtein={(id, data) => updateProtein.mutate({ id, data }, { onSuccess: invalidate })}
                         onDeleteProtein={(id, name, typeId) => setDeleteTarget({ kind: "protein", id, name, typeId, dishId: dish.id })}
                         onOpenConfig={(typeId, maxSides, maxProteins) => setConfigDialog({ typeId, maxSides, maxProteins })}
@@ -250,7 +251,7 @@ export default function AdminMenuItems() {
       </Dialog>
 
       <Dialog open={!!newTypeForm} onOpenChange={open => !open && setNewTypeForm(null)}>
-        <DialogContent className="bg-card border-primary/20 text-white sm:max-w-sm">
+        <DialogContent className="bg-card border-primary/20 text-white sm:max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Add Type</DialogTitle></DialogHeader>
           <div className="space-y-4 pt-2">
             <Input
@@ -260,11 +261,10 @@ export default function AdminMenuItems() {
               onChange={e => setNewTypeForm(f => f ? { ...f, name: e.target.value } : f)}
               className="bg-background/50 border-primary/20 text-white"
             />
-            <Input
-              placeholder="Image URL (optional)"
+            <ImageUpload
+              label="Type Image (optional)"
               value={newTypeForm?.imageUrl ?? ""}
-              onChange={e => setNewTypeForm(f => f ? { ...f, imageUrl: e.target.value } : f)}
-              className="bg-background/50 border-primary/20 text-white"
+              onChange={v => setNewTypeForm(f => f ? { ...f, imageUrl: v } : f)}
             />
             <Button
               className="w-full bg-primary hover:bg-primary/90"
@@ -282,7 +282,7 @@ export default function AdminMenuItems() {
       </Dialog>
 
       <Dialog open={!!newSideForm} onOpenChange={open => !open && setNewSideForm(null)}>
-        <DialogContent className="bg-card border-primary/20 text-white sm:max-w-sm">
+        <DialogContent className="bg-card border-primary/20 text-white sm:max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Add Side Item</DialogTitle></DialogHeader>
           <div className="space-y-4 pt-2">
             <Input
@@ -291,6 +291,11 @@ export default function AdminMenuItems() {
               value={newSideForm?.name ?? ""}
               onChange={e => setNewSideForm(f => f ? { ...f, name: e.target.value } : f)}
               className="bg-background/50 border-primary/20 text-white"
+            />
+            <ImageUpload
+              label="Side Image (optional)"
+              value={newSideForm?.imageUrl ?? ""}
+              onChange={v => setNewSideForm(f => f ? { ...f, imageUrl: v } : f)}
             />
             <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-background/50 p-3">
               <div>
@@ -308,7 +313,7 @@ export default function AdminMenuItems() {
               onClick={() => {
                 if (!newSideForm) return;
                 createSide.mutate(
-                  { data: { mainDishTypeId: newSideForm.typeId, name: newSideForm.name.trim(), isComplementary: newSideForm.isComplementary } },
+                  { data: { mainDishTypeId: newSideForm.typeId, name: newSideForm.name.trim(), imageUrl: newSideForm.imageUrl || undefined, isComplementary: newSideForm.isComplementary } },
                   { onSuccess: () => { invalidate(); setNewSideForm(null); toast({ title: "Side item added" }); } }
                 );
               }}
@@ -318,7 +323,7 @@ export default function AdminMenuItems() {
       </Dialog>
 
       <Dialog open={!!newProteinForm} onOpenChange={open => !open && setNewProteinForm(null)}>
-        <DialogContent className="bg-card border-primary/20 text-white sm:max-w-sm">
+        <DialogContent className="bg-card border-primary/20 text-white sm:max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Add Protein</DialogTitle></DialogHeader>
           <div className="space-y-4 pt-2">
             <Input
@@ -328,13 +333,18 @@ export default function AdminMenuItems() {
               onChange={e => setNewProteinForm(f => f ? { ...f, name: e.target.value } : f)}
               className="bg-background/50 border-primary/20 text-white"
             />
+            <ImageUpload
+              label="Protein Image (optional)"
+              value={newProteinForm?.imageUrl ?? ""}
+              onChange={v => setNewProteinForm(f => f ? { ...f, imageUrl: v } : f)}
+            />
             <Button
               className="w-full bg-primary hover:bg-primary/90"
               disabled={!newProteinForm?.name?.trim()}
               onClick={() => {
                 if (!newProteinForm) return;
                 createProtein.mutate(
-                  { data: { mainDishTypeId: newProteinForm.typeId, name: newProteinForm.name.trim() } },
+                  { data: { mainDishTypeId: newProteinForm.typeId, name: newProteinForm.name.trim(), imageUrl: newProteinForm.imageUrl || undefined } },
                   { onSuccess: () => { invalidate(); setNewProteinForm(null); toast({ title: "Protein added" }); } }
                 );
               }}
