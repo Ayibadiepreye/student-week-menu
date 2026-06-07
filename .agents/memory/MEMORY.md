@@ -1,0 +1,2 @@
+- [API schema imports](api-schema-imports.md) — generated types must be imported from `@workspace/api-client-react` (not from the sub-path `/src/generated/api.schemas`)
+- [Per-type menu architecture](per-type-menu.md) — sides, proteins, and dish configs are scoped to `MainDishTypeFull` (not the parent `MainDishFull`); the dish config endpoint is `/dish-configs/type/{typeId}`
