@@ -38,6 +38,8 @@ router.put("/config", async (req, res): Promise<void> => {
   if (parsed.data.maxSides !== undefined) updateData.maxSides = parsed.data.maxSides;
   if (parsed.data.maxProteins !== undefined) updateData.maxProteins = parsed.data.maxProteins;
   if (parsed.data.allowMultipleMains !== undefined) updateData.allowMultipleMains = parsed.data.allowMultipleMains;
+  if (parsed.data.adminPin !== undefined) updateData.adminPin = parsed.data.adminPin;
+  if (parsed.data.usherPin !== undefined) updateData.usherPin = parsed.data.usherPin;
 
   const { eq } = await import("drizzle-orm");
   const [config] = await db

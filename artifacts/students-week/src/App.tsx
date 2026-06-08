@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +16,17 @@ import AdminVendors from "@/pages/admin/AdminVendors";
 import AdminTables from "@/pages/admin/AdminTables";
 import AdminMenuItems from "@/pages/admin/AdminMenuItems";
 import OrderHistory from "@/pages/admin/OrderHistory";
+import AdminLogin from "@/pages/AdminLogin";
+
+import UsherLogin from "@/pages/UsherLogin";
+import UsherLayout from "@/pages/usher/UsherLayout";
+import UsherLiveOrders from "@/pages/usher/UsherLiveOrders";
+import UsherTables from "@/pages/usher/UsherTables";
+
+import VendorLogin from "@/pages/VendorLogin";
+import VendorDashboard from "@/pages/vendor/VendorDashboard";
+
+import { ROUTES } from "@/constants/routes";
 
 const queryClient = new QueryClient();
 
@@ -23,25 +34,44 @@ function AdminRoutes() {
   return (
     <AdminLayout>
       <Switch>
-        <Route path="/admin" component={LiveOrders} />
-        <Route path="/admin/vendors" component={AdminVendors} />
-        <Route path="/admin/tables" component={AdminTables} />
-        <Route path="/admin/menu" component={AdminMenuItems} />
-        <Route path="/admin/history" component={OrderHistory} />
+        <Route path={ROUTES.ADMIN_DASHBOARD} component={LiveOrders} />
+        <Route path={ROUTES.ADMIN_VENDORS} component={AdminVendors} />
+        <Route path={ROUTES.ADMIN_TABLES} component={AdminTables} />
+        <Route path={ROUTES.ADMIN_MENU} component={AdminMenuItems} />
+        <Route path={ROUTES.ADMIN_HISTORY} component={OrderHistory} />
       </Switch>
     </AdminLayout>
+  );
+}
+
+function UsherRoutes() {
+  return (
+    <UsherLayout>
+      <Switch>
+        <Route path={ROUTES.USHER_DASHBOARD} component={UsherLiveOrders} />
+        <Route path={ROUTES.USHER_TABLES} component={UsherTables} />
+      </Switch>
+    </UsherLayout>
   );
 }
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
-      <Route path="/vendors" component={Vendors} />
-      <Route path="/menu/:vendorId" component={Menu} />
-      <Route path="/order-complete" component={OrderComplete} />
-      <Route path="/admin/*" component={AdminRoutes} />
-      <Route path="/admin" component={AdminRoutes} />
+      <Route path={ROUTES.HOME} component={Landing} />
+      <Route path={ROUTES.VENDORS} component={Vendors} />
+      <Route path={ROUTES.MENU} component={Menu} />
+      <Route path={ROUTES.ORDER_COMPLETE} component={OrderComplete} />
+
+      <Route path={ROUTES.ADMIN_LOGIN} component={AdminLogin} />
+      <Route path={`${ROUTES.ADMIN}/*`} component={AdminRoutes} />
+
+      <Route path={ROUTES.USHER_LOGIN} component={UsherLogin} />
+      <Route path={`${ROUTES.USHER}/*`} component={UsherRoutes} />
+
+      <Route path={ROUTES.VENDOR_LOGIN} component={VendorLogin} />
+      <Route path={ROUTES.VENDOR_DASHBOARD} component={VendorDashboard} />
+
       <Route component={NotFound} />
     </Switch>
   );

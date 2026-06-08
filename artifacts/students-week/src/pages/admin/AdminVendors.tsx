@@ -17,7 +17,7 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Edit2 } from "lucide-react";
+import { Trash2, Edit2, RefreshCw } from "lucide-react";
 import type { Vendor } from "@workspace/api-client-react";
 import { ImageUpload } from "@/components/ImageUpload";
 
@@ -27,12 +27,14 @@ const vendorSchema = z.object({
   imageUrl: z.string().optional(),
   isActive: z.boolean().default(true),
   maxPlates: z.coerce.number().min(0).default(0),
+  vendorPin: z.string().optional(),
 });
 
 export default function AdminVendors() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { data: vendors } = useGetVendors({}, { query: { queryKey: getGetVendorsQueryKey({}) } });
+  const { data: vendors, refetch: refetchVendors } = useGetVendors({}, { query: { queryKey: getGetVendorsQueryKey({}), refetchInterval: 10000 } });
+  const [isReloading, setIsReloading] = useState(false);
 
   const createVendor = useCreateVendor();
   const updateVendor = useUpdateVendor();
@@ -47,6 +49,13 @@ export default function AdminVendors() {
     defaultValues: { name: "", description: "", imageUrl: "", isActive: true, maxPlates: 0 },
   });
 
+  const handleReload = async () => {
+    setIsReloading(true);
+    await refetchVendors();
+    setIsReloading(false);
+    toast({ title: "Data refreshed successfully!" });
+  };
+
   const onSubmit = (values: z.infer<typeof vendorSchema>) => {
     const payload = {
       name: values.name,
@@ -54,6 +63,7 @@ export default function AdminVendors() {
       imageUrl: values.imageUrl || undefined,
       isActive: values.isActive,
       maxPlates: values.maxPlates,
+      vendorPin: values.vendorPin || undefined,
     };
     if (editingVendor) {
       updateVendor.mutate(
@@ -91,6 +101,7 @@ export default function AdminVendors() {
       imageUrl: vendor.imageUrl || "",
       isActive: vendor.isActive,
       maxPlates: vendor.maxPlates || 0,
+      vendorPin: vendor.vendorPin || "",
     });
     setIsOpen(true);
   };
@@ -119,98 +130,121 @@ export default function AdminVendors() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Vendors</h2>
           <p className="text-muted-foreground mt-1">Manage food vendors and their active status.</p>
         </div>
-        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90 text-white">Add Vendor</Button>
-          </DialogTrigger>
-          <DialogContent className="bg-card border-primary/20 text-white sm:max-w-[440px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editingVendor ? "Edit Vendor" : "Add Vendor"}</DialogTitle>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input className="bg-background/50 border-primary/20 text-white" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea className="bg-background/50 border-primary/20 text-white" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="imageUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <ImageUpload
-                          label="Vendor Image"
-                          value={field.value ?? ""}
-                          onChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="maxPlates"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Max Plates (0 = unlimited)</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="0" className="bg-background/50 border-primary/20 text-white" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="isActive"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-primary/20 bg-background/50 p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">Active Status</FormLabel>
-                        <div className="text-sm text-muted-foreground">Is this vendor currently available?</div>
-                      </div>
-                      <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full" disabled={createVendor.isPending || updateVendor.isPending}>
-                  {editingVendor ? "Update" : "Create"}
-                </Button>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-3">
+          <Button 
+            onClick={handleReload} 
+            disabled={isReloading} 
+            className="bg-primary hover:bg-primary/90 text-white"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isReloading ? "animate-spin" : ""}`} />
+            Reload
+          </Button>
+          <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary hover:bg-primary/90 text-white">Add Vendor</Button>
+            </DialogTrigger>
+            <DialogContent className="bg-card border-primary/20 text-white sm:max-w-[440px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>{editingVendor ? "Edit Vendor" : "Add Vendor"}</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input className="bg-background/50 border-primary/20 text-white" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea className="bg-background/50 border-primary/20 text-white" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="imageUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <ImageUpload
+                            label="Vendor Image"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="maxPlates"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Max Plates (0 = unlimited)</FormLabel>
+                        <FormControl>
+                          <Input type="number" min="0" className="bg-background/50 border-primary/20 text-white" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="vendorPin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Vendor PIN</FormLabel>
+                        <FormControl>
+                          <Input type="password" className="bg-background/50 border-primary/20 text-white" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="isActive"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border border-primary/20 bg-background/50 p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Active Status</FormLabel>
+                          <div className="text-sm text-muted-foreground">Is this vendor currently available?</div>
+                        </div>
+                        <FormControl>
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full" disabled={createVendor.isPending || updateVendor.isPending}>
+                    {createVendor.isPending || updateVendor.isPending ? "Saving..." : (editingVendor ? "Update" : "Create")}
+                  </Button>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -254,6 +288,9 @@ export default function AdminVendors() {
               {vendor.maxPlates > 0 && (
                 <p className="text-xs text-zinc-500 mt-2">{vendor.orderCount ?? 0} / {vendor.maxPlates} plates</p>
               )}
+              {vendor.vendorPin && (
+                <p className="text-xs text-primary mt-2">Vendor PIN: {vendor.vendorPin}</p>
+              )}
             </CardContent>
           </Card>
         ))}
@@ -274,8 +311,8 @@ export default function AdminVendors() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="border-primary/20 text-white hover:bg-white/5">Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white" onClick={handleConfirmDelete}>
-              Delete
+            <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white" onClick={handleConfirmDelete} disabled={deleteVendor.isPending}>
+              {deleteVendor.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

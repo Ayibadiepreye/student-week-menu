@@ -1,60 +1,35 @@
-import { useState, useEffect } from "react";
-import QRCode from "qrcode";
+import { useState } from "react";
 import {
   useGetTables, getGetTablesQueryKey,
-  useCreateTable, useUpdateTable, useDeleteTable,
   useGetOrdersByTable, getGetOrdersByTableQueryKey,
   useUpdateOrderStatus,
 } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel,
-  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import {
-  Trash2, QrCode, Search, Download, CheckCheck, Clock, RefreshCw,
+  Search, CheckCheck, Clock, RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
-import type { EventTable, TableOrderGroup, OrderFull } from "@workspace/api-client-react";
+import type { TableOrderGroup, OrderFull } from "@workspace/api-client-react";
 
-const tableSchema = z.object({
-  tableNumber: z.string().min(1, "Table number is required"),
-});
-
-function getTableUrl(tableNumber: string) {
-  const base = window.location.origin + (import.meta.env.BASE_URL ?? "/");
-  return `${base.replace(/\/$/, "")}/?table=${encodeURIComponent(tableNumber)}`;
-}
-
-export default function AdminTables() {
-  const queryClient = useQueryClient();
+export default function UsherTables() {
   const { toast } = useToast();
-
   const [search, setSearch] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState<EventTable | null>(null);
   const [selectedTableGroup, setSelectedTableGroup] = useState<TableOrderGroup | null>(null);
-  const [qrTarget, setQrTarget] = useState<string | null>(null);
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [isReloading, setIsReloading] = useState(false);
 
   const { data: tables, isLoading: tablesLoading, refetch: refetchTables } = useGetTables({}, { query: { queryKey: getGetTablesQueryKey({}), refetchInterval: 10000 } });
   const { data: ordersByTable, refetch: refetchOrders } = useGetOrdersByTable({
     query: { queryKey: getGetOrdersByTableQueryKey(), refetchInterval: 15000 },
   });
+
+  const updateStatus = useUpdateOrderStatus();
 
   const handleReload = async () => {
     setIsReloading(true);
@@ -63,43 +38,12 @@ export default function AdminTables() {
     toast({ title: "Data refreshed successfully!" });
   };
 
-  const createTable = useCreateTable();
-  const updateTable = useUpdateTable();
-  const deleteTable = useDeleteTable();
-  const updateStatus = useUpdateOrderStatus();
-
-  const form = useForm<z.infer<typeof tableSchema>>({
-    resolver: zodResolver(tableSchema),
-    defaultValues: { tableNumber: "" },
-  });
-
   const filteredTables = (tables ?? []).filter(t =>
     !search || t.tableNumber.toLowerCase().includes(search.toLowerCase())
   );
 
   const getOrdersForTable = (tableNumber: string) =>
     ordersByTable?.find(g => g.tableNumber === tableNumber) ?? null;
-
-  const handleToggleActive = (id: number, isActive: boolean) => {
-    updateTable.mutate(
-      { id, data: { isActive } },
-      { onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetTablesQueryKey() }) }
-    );
-  };
-
-  const handleConfirmDelete = () => {
-    if (!deleteTarget) return;
-    deleteTable.mutate(
-      { id: deleteTarget.id },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetTablesQueryKey() });
-          toast({ title: "Table deleted" });
-          setDeleteTarget(null);
-        },
-      }
-    );
-  };
 
   const handleMarkServed = (orderId: number) => {
     updateStatus.mutate(
@@ -132,77 +76,21 @@ export default function AdminTables() {
     pending.forEach(o => handleMarkServed(o.id));
   };
 
-  const handleOpenQR = async (tableNumber: string) => {
-    setQrTarget(tableNumber);
-    setQrDataUrl(null);
-    const url = getTableUrl(tableNumber);
-    const dataUrl = await QRCode.toDataURL(url, { width: 300, margin: 2, color: { dark: "#000000", light: "#ffffff" } });
-    setQrDataUrl(dataUrl);
-  };
-
-  const handleDownloadQR = () => {
-    if (!qrDataUrl || !qrTarget) return;
-    const a = document.createElement("a");
-    a.href = qrDataUrl;
-    a.download = `table-${qrTarget}-qr.png`;
-    a.click();
-  };
-
-  const onAddTable = (values: z.infer<typeof tableSchema>) => {
-    createTable.mutate(
-      { data: { tableNumber: values.tableNumber.trim() } },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetTablesQueryKey() });
-          toast({ title: "Table added" });
-          form.reset();
-        },
-      }
-    );
-  };
-
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Table Management</h2>
-          <p className="text-muted-foreground mt-1">
-            Manage tables, generate QR codes, and view per-table orders.
-          </p>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Tables</h2>
+          <p className="text-muted-foreground mt-1">View per-table orders.</p>
         </div>
-        <div className="flex gap-3">
-          <Button 
-            onClick={handleReload} 
-            disabled={isReloading} 
-            className="bg-primary hover:bg-primary/90 text-white"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isReloading ? "animate-spin" : ""}`} />
-            Reload
-          </Button>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onAddTable)} className="flex items-start gap-2">
-              <FormField
-                control={form.control}
-                name="tableNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g. A1"
-                        className="bg-background/50 border-primary/20 text-white w-32"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" disabled={createTable.isPending} className="bg-primary hover:bg-primary/90">
-                {createTable.isPending ? "Adding..." : "Add Table"}
-              </Button>
-            </form>
-          </Form>
-        </div>
+        <Button
+          onClick={handleReload}
+          disabled={isReloading}
+          className="bg-primary hover:bg-primary/90 text-white"
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isReloading ? "animate-spin" : ""}`} />
+          Reload
+        </Button>
       </div>
 
       {/* Search */}
@@ -249,22 +137,6 @@ export default function AdminTables() {
                 <CardContent className="p-3 space-y-2">
                   <div className="flex items-start justify-between">
                     <span className="font-bold text-white text-lg leading-none">{table.tableNumber}</span>
-                    <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                      <button
-                        className="p-1 text-zinc-400 hover:text-primary transition-colors"
-                        title="Generate QR"
-                        onClick={() => handleOpenQR(table.tableNumber)}
-                      >
-                        <QrCode className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        className="p-1 text-red-400 hover:text-red-300 transition-colors"
-                        title="Delete table"
-                        onClick={() => setDeleteTarget(table)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
                   </div>
 
                   {total > 0 ? (
@@ -283,14 +155,6 @@ export default function AdminTables() {
                   ) : (
                     <div className="text-xs text-zinc-600">No orders</div>
                   )}
-
-                  <div
-                    className="flex items-center gap-1 mt-1"
-                    onClick={e => { e.stopPropagation(); handleToggleActive(table.id, !table.isActive); }}
-                  >
-                    <Switch checked={table.isActive} className="scale-75 origin-left" />
-                    <span className="text-xs text-zinc-500">{table.isActive ? "Active" : "Off"}</span>
-                  </div>
                 </CardContent>
               </Card>
             );
@@ -379,46 +243,6 @@ export default function AdminTables() {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* QR Code dialog */}
-      <Dialog open={!!qrTarget} onOpenChange={open => !open && (setQrTarget(null), setQrDataUrl(null))}>
-        <DialogContent className="bg-card border-primary/20 text-white sm:max-w-xs text-center">
-          <DialogHeader>
-            <DialogTitle>QR Code — Table {qrTarget}</DialogTitle>
-          </DialogHeader>
-          {qrDataUrl ? (
-            <div className="space-y-4">
-              <div className="bg-white p-3 rounded-xl inline-block mx-auto">
-                <img src={qrDataUrl} alt={`QR for table ${qrTarget}`} className="w-48 h-48" />
-              </div>
-              <p className="text-xs text-zinc-400 break-all">{getTableUrl(qrTarget ?? "")}</p>
-              <Button className="w-full bg-primary hover:bg-primary/90" onClick={handleDownloadQR}>
-                <Download className="h-4 w-4 mr-2" /> Download PNG
-              </Button>
-            </div>
-          ) : (
-            <div className="py-8 text-zinc-400">Generating QR code...</div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete confirmation */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={open => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="bg-card border-primary/20 text-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete table?</AlertDialogTitle>
-            <AlertDialogDescription className="text-zinc-400">
-              Delete table "<strong className="text-white">{deleteTarget?.tableNumber}</strong>"? This cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="border-primary/20 text-white hover:bg-white/5">Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white" onClick={handleConfirmDelete} disabled={deleteTable.isPending}>
-              {deleteTable.isPending ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

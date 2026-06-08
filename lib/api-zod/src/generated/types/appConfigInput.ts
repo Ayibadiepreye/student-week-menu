@@ -12,4 +12,8 @@ export interface AppConfigInput {
   /** @minimum 1 */
   maxProteins?: number;
   allowMultipleMains?: boolean;
+  /** @nullable */
+  adminPin?: string | null;
+  /** @nullable */
+  usherPin?: string | null;
 }

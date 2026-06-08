@@ -11,6 +11,10 @@ export interface AppConfig {
   maxSides: number;
   maxProteins: number;
   allowMultipleMains: boolean;
+  /** @nullable */
+  adminPin?: string | null;
+  /** @nullable */
+  usherPin?: string | null;
   createdAt: string;
   updatedAt: string;
 }

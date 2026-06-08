@@ -13,6 +13,8 @@ tags:
   - name: orders
   - name: tables
   - name: config
+  - name: auth
+  - name: vendor
 paths:
   /healthz:
     get:
@@ -631,6 +633,96 @@ paths:
               schema:
                 $ref: "#/components/schemas/AppConfig"
 
+  /auth/admin:
+    post:
+      operationId: verifyAdminPin
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyAdminPin"
+      responses:
+        "200":
+          description: Valid pin
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [valid]
+                properties:
+                  valid:
+                    type: boolean
+        "401":
+          description: Invalid pin
+  /auth/usher:
+    post:
+      operationId: verifyUsherPin
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyUsherPin"
+      responses:
+        "200":
+          description: Valid pin
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [valid]
+                properties:
+                  valid:
+                    type: boolean
+        "401":
+          description: Invalid pin
+  /auth/vendor:
+    post:
+      operationId: verifyVendorPin
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyVendorPin"
+      responses:
+        "200":
+          description: Valid pin, returns vendor
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [valid, vendor]
+                properties:
+                  valid:
+                    type: boolean
+                  vendor:
+                    $ref: "#/components/schemas/Vendor"
+        "401":
+          description: Invalid pin
+
+  /vendor-dashboard/{vendorId}/stats:
+    get:
+      operationId: getVendorDashboardStats
+      tags: [vendor]
+      parameters:
+        - name: vendorId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Vendor dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorDashboardStats"
+
 components:
   schemas:
     HealthStatus:
@@ -663,6 +755,8 @@ components:
           type: boolean
         maxPlates:
           type: integer
+        vendorPin:
+          type: ["string", "null"]
         orderCount:
           type: integer
         createdAt:
@@ -700,6 +794,8 @@ components:
         maxPlates:
           type: integer
           minimum: 0
+        vendorPin:
+          type: ["string", "null"]
 
     MainDishType:
       type: object
@@ -1085,6 +1181,10 @@ components:
           type: integer
         allowMultipleMains:
           type: boolean
+        adminPin:
+          type: ["string", "null"]
+        usherPin:
+          type: ["string", "null"]
         createdAt:
           type: string
         updatedAt:
@@ -1101,3 +1201,84 @@ components:
           minimum: 1
         allowMultipleMains:
           type: boolean
+        adminPin:
+          type: ["string", "null"]
+        usherPin:
+          type: ["string", "null"]
+
+    VerifyAdminPin:
+      type: object
+      required: [pin]
+      properties:
+        pin:
+          type: string
+          minLength: 1
+
+    VerifyUsherPin:
+      type: object
+      required: [pin]
+      properties:
+        pin:
+          type: string
+          minLength: 1
+
+    VerifyVendorPin:
+      type: object
+      required: [pin]
+      properties:
+        pin:
+          type: string
+          minLength: 1
+
+    VendorDashboardStats:
+      type: object
+      required: [totalOrders, pendingOrders, servedOrders, remainingPlates]
+      properties:
+        totalOrders:
+          type: integer
+        pendingOrders:
+          type: integer
+        servedOrders:
+          type: integer
+        remainingPlates:
+          type: integer
+        popularMainDishes:
+          type: array
+          items:
+            type: object
+            required: [name, count]
+            properties:
+              name:
+                type: string
+              count:
+                type: integer
+        popularMainDishTypes:
+          type: array
+          items:
+            type: object
+            required: [name, count]
+            properties:
+              name:
+                type: string
+              count:
+                type: integer
+        popularSides:
+          type: array
+          items:
+            type: object
+            required: [name, count]
+            properties:
+              name:
+                type: string
+              count:
+                type: integer
+        popularProteins:
+          type: array
+          items:
+            type: object
+            required: [name, count]
+            properties:
+              name:
+                type: string
+              count:
+                type: integer

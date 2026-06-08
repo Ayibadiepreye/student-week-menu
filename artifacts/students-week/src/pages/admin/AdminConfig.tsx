@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGetConfig, getGetConfigQueryKey, useUpdateConfig } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
@@ -10,18 +10,29 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { RefreshCw } from "lucide-react";
 
 const configSchema = z.object({
   maxSides: z.coerce.number().min(1, "Must be at least 1"),
   maxProteins: z.coerce.number().min(1, "Must be at least 1"),
   allowMultipleMains: z.boolean().default(false),
+  adminPin: z.string().optional(),
+  usherPin: z.string().optional(),
 });
 
 export default function AdminConfig() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { data: config, isLoading } = useGetConfig({ query: { queryKey: getGetConfigQueryKey() } });
+  const { data: config, isLoading, refetch: refetchConfig } = useGetConfig({ query: { queryKey: getGetConfigQueryKey(), refetchInterval: 10000 } });
   const updateConfig = useUpdateConfig();
+  const [isReloading, setIsReloading] = useState(false);
+
+  const handleReload = async () => {
+    setIsReloading(true);
+    await refetchConfig();
+    setIsReloading(false);
+    toast({ title: "Data refreshed successfully!" });
+  };
 
   const form = useForm<z.infer<typeof configSchema>>({
     resolver: zodResolver(configSchema),
@@ -36,6 +47,8 @@ export default function AdminConfig() {
         maxSides: config.maxSides,
         maxProteins: config.maxProteins,
         allowMultipleMains: config.allowMultipleMains,
+        adminPin: config.adminPin ?? "",
+        usherPin: config.usherPin ?? "",
       });
       initialized.current = true;
     }
@@ -62,9 +75,19 @@ export default function AdminConfig() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <div>
-        <h2 className="text-2xl font-bold text-white tracking-tight">Configuration</h2>
-        <p className="text-muted-foreground mt-1">Global settings for the ordering experience.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Configuration</h2>
+          <p className="text-muted-foreground mt-1">Global settings for the ordering experience.</p>
+        </div>
+        <Button 
+          onClick={handleReload} 
+          disabled={isReloading} 
+          className="bg-primary hover:bg-primary/90 text-white"
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isReloading ? "animate-spin" : ""}`} />
+          Reload
+        </Button>
       </div>
 
       <Card className="bg-card/40 border-primary/10">
@@ -116,6 +139,34 @@ export default function AdminConfig() {
                     <FormControl>
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="adminPin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-zinc-300">Admin PIN</FormLabel>
+                    <FormControl>
+                      <Input type="password" className="bg-background/50 border-primary/20 text-white" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="usherPin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-zinc-300">Usher PIN</FormLabel>
+                    <FormControl>
+                      <Input type="password" className="bg-background/50 border-primary/20 text-white" {...field} />
+                    </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

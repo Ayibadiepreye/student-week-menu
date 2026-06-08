@@ -6,8 +6,9 @@ import { motion } from "framer-motion";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Lock } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
@@ -16,6 +17,8 @@ const formSchema = z.object({
 
 export default function Landing() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [isChecking, setIsChecking] = useState(false);
 
   const searchParams = new URLSearchParams(window.location.search);
   const lockedTable = searchParams.get("table");
@@ -36,10 +39,31 @@ export default function Landing() {
     }
   }, [form, lockedTable]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    sessionStorage.setItem("sw_name", values.fullName.trim());
-    sessionStorage.setItem("sw_table", values.tableNumber.trim());
-    setLocation("/vendors");
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsChecking(true);
+    try {
+      const response = await fetch(`/api/orders/check/${encodeURIComponent(values.fullName.trim())}`);
+      const data = await response.json();
+      if (data.exists) {
+        toast({
+          title: "Duplicate name",
+          description: `An order already exists for "${values.fullName.trim()}". Each person can only order once.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      sessionStorage.setItem("sw_name", values.fullName.trim());
+      sessionStorage.setItem("sw_table", values.tableNumber.trim());
+      setLocation("/vendors");
+    } catch (error) {
+      toast({
+        title: "Error checking name",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChecking(false);
+    }
   }
 
   return (
@@ -116,8 +140,9 @@ export default function Landing() {
               <Button
                 type="submit"
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-12 text-lg"
+                disabled={isChecking}
               >
-                Enter
+                {isChecking ? "Checking..." : "Enter"}
               </Button>
             </form>
           </Form>

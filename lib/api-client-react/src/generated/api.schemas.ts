@@ -22,6 +22,8 @@ export interface Vendor {
   imageUrl?: string | null;
   isActive: boolean;
   maxPlates: number;
+  /** @nullable */
+  vendorPin?: string | null;
   orderCount: number;
   createdAt: string;
 }
@@ -46,6 +48,8 @@ export interface VendorUpdate {
   isActive?: boolean;
   /** @minimum 0 */
   maxPlates?: number;
+  /** @nullable */
+  vendorPin?: string | null;
 }
 
 export interface MainDishType {
@@ -278,6 +282,10 @@ export interface AppConfig {
   maxSides: number;
   maxProteins: number;
   allowMultipleMains: boolean;
+  /** @nullable */
+  adminPin?: string | null;
+  /** @nullable */
+  usherPin?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -288,6 +296,56 @@ export interface AppConfigInput {
   /** @minimum 1 */
   maxProteins?: number;
   allowMultipleMains?: boolean;
+  /** @nullable */
+  adminPin?: string | null;
+  /** @nullable */
+  usherPin?: string | null;
+}
+
+export interface VerifyAdminPin {
+  /** @minLength 1 */
+  pin: string;
+}
+
+export interface VerifyUsherPin {
+  /** @minLength 1 */
+  pin: string;
+}
+
+export interface VerifyVendorPin {
+  /** @minLength 1 */
+  pin: string;
+}
+
+export type VendorDashboardStatsPopularMainDishesItem = {
+  name: string;
+  count: number;
+};
+
+export type VendorDashboardStatsPopularMainDishTypesItem = {
+  name: string;
+  count: number;
+};
+
+export type VendorDashboardStatsPopularSidesItem = {
+  name: string;
+  count: number;
+};
+
+export type VendorDashboardStatsPopularProteinsItem = {
+  name: string;
+  count: number;
+};
+
+export interface VendorDashboardStats {
+  totalOrders: number;
+  pendingOrders: number;
+  servedOrders: number;
+  remainingPlates: number;
+  popularMainDishes?: VendorDashboardStatsPopularMainDishesItem[];
+  popularMainDishTypes?: VendorDashboardStatsPopularMainDishTypesItem[];
+  popularSides?: VendorDashboardStatsPopularSidesItem[];
+  popularProteins?: VendorDashboardStatsPopularProteinsItem[];
 }
 
 export type GetVendorsParams = {
@@ -334,5 +392,18 @@ export const GetOrderHistoryStatus = {
 export type GetTablesParams = {
 activeOnly?: boolean;
 search?: string;
+};
+
+export type VerifyAdminPin200 = {
+  valid: boolean;
+};
+
+export type VerifyUsherPin200 = {
+  valid: boolean;
+};
+
+export type VerifyVendorPin200 = {
+  valid: boolean;
+  vendor: Vendor;
 };
 

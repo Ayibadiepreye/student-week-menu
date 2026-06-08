@@ -9,6 +9,7 @@ export const vendorsTable = pgTable("vendors", {
   imageUrl: text("image_url"),
   isActive: boolean("is_active").notNull().default(true),
   maxPlates: integer("max_plates").notNull().default(0),
+  vendorPin: text("vendor_pin"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

@@ -16,4 +16,6 @@ export interface VendorUpdate {
   isActive?: boolean;
   /** @minimum 0 */
   maxPlates?: number;
+  /** @nullable */
+  vendorPin?: string | null;
 }

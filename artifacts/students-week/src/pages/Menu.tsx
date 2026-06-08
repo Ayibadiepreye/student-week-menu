@@ -55,6 +55,9 @@ export default function Menu() {
   const maxSides = selectedType?.config?.maxSides ?? 2;
   const maxProteins = selectedType?.config?.maxProteins ?? 1;
 
+  const availableSides = selectedType?.sides.filter(s => s.isAvailable) ?? [];
+  const availableProteins = selectedType?.proteins.filter(p => p.isAvailable) ?? [];
+
   const handleSelectDish = (dishId: number) => {
     setSelectedDishId(dishId);
     setSelectedTypeId(null);
@@ -94,13 +97,24 @@ export default function Menu() {
     });
   };
 
-  const canOrder = selectedTypeId && selectedSideIds.length > 0 && selectedProteinIds.length > 0;
+  const canOrder = selectedTypeId && 
+    (availableSides.length === 0 || selectedSideIds.length > 0) && 
+    (availableProteins.length === 0 || selectedProteinIds.length > 0);
 
   const handlePlaceOrder = () => {
     if (!canOrder) {
+      let description = "Please select a dish type";
+      if (availableSides.length > 0 && selectedSideIds.length === 0) {
+        description += ", at least one side";
+      }
+      if (availableProteins.length > 0 && selectedProteinIds.length === 0) {
+        description += ", at least one protein";
+      }
+      description += ".";
+      
       toast({
         title: "Incomplete selection",
-        description: "Please select a dish type, at least one side, and at least one protein.",
+        description: description,
         variant: "destructive",
       });
       return;
@@ -127,9 +141,6 @@ export default function Menu() {
   };
 
   const step = !selectedDishId ? 1 : !selectedTypeId ? 2 : 3;
-
-  const availableSides = selectedType?.sides.filter(s => s.isAvailable) ?? [];
-  const availableProteins = selectedType?.proteins.filter(p => p.isAvailable) ?? [];
 
   if (isLoading) {
     return (

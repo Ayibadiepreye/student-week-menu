@@ -15,6 +15,8 @@ export interface Vendor {
   imageUrl?: string | null;
   isActive: boolean;
   maxPlates: number;
+  /** @nullable */
+  vendorPin?: string | null;
   orderCount: number;
   createdAt: string;
 }

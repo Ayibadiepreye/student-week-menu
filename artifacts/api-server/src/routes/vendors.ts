@@ -11,6 +11,10 @@ import {
   DeleteVendorParams,
 } from "@workspace/api-zod";
 
+function generateRandomPin() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 const router: IRouter = Router();
 
 async function getVendorsWithOrderCounts() {
@@ -58,6 +62,7 @@ router.post("/vendors", async (req, res): Promise<void> => {
       imageUrl: parsed.data.imageUrl ?? null,
       isActive: parsed.data.isActive ?? true,
       maxPlates: parsed.data.maxPlates ?? 0,
+      vendorPin: generateRandomPin(),
     })
     .returning();
 
@@ -83,6 +88,7 @@ router.patch("/vendors/:id", async (req, res): Promise<void> => {
   if (parsed.data.imageUrl !== undefined) updateData.imageUrl = parsed.data.imageUrl;
   if (parsed.data.isActive !== undefined) updateData.isActive = parsed.data.isActive;
   if (parsed.data.maxPlates !== undefined) updateData.maxPlates = parsed.data.maxPlates;
+  if (parsed.data.vendorPin !== undefined) updateData.vendorPin = parsed.data.vendorPin;
 
   const [vendor] = await db
     .update(vendorsTable)

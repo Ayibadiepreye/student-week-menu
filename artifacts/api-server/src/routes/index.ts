@@ -10,6 +10,8 @@ import mainDishTypesRouter from "./mainDishTypes";
 import sideItemsRouter from "./sideItems";
 import proteinItemsRouter from "./proteinItems";
 import dishConfigsRouter from "./dishConfigs";
+import authRouter from "./auth";
+import vendorDashboardRouter from "./vendor-dashboard";
 
 const router: IRouter = Router();
 
@@ -24,5 +26,7 @@ router.use(mainDishTypesRouter);
 router.use(sideItemsRouter);
 router.use(proteinItemsRouter);
 router.use(dishConfigsRouter);
+router.use(authRouter);
+router.use(vendorDashboardRouter);
 
 export default router;

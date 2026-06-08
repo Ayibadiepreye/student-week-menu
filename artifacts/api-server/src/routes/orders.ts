@@ -15,6 +15,21 @@ import {
 
 const router: IRouter = Router();
 
+// Check if a name already has an order
+router.get("/orders/check/:name", async (req, res): Promise<void> => {
+  const { name } = req.params;
+  if (!name) {
+    res.status(400).json({ error: "Name is required" });
+    return;
+  }
+  const normalizedName = name.trim().toLowerCase();
+  const existingOrder = await db
+    .select({ id: ordersTable.id })
+    .from(ordersTable)
+    .where(ilike(ordersTable.customerName, normalizedName));
+  res.json({ exists: existingOrder.length > 0 });
+});
+
 async function enrichOrder(orderId: number) {
   const [order] = await db
     .select({
@@ -191,11 +206,18 @@ router.post("/orders", async (req, res): Promise<void> => {
     res.status(400).json({ error: "customerName, tableNumber, vendorId, and mainDishTypeId are required" });
     return;
   }
-  if (!Array.isArray(sideIds) || sideIds.length === 0) {
+
+  // Check if the selected main dish type has any sides or proteins
+  const [availableSides, availableProteins] = await Promise.all([
+    db.select().from(sideItemsTable).where(eq(sideItemsTable.mainDishTypeId, Number(mainDishTypeId))),
+    db.select().from(proteinItemsTable).where(eq(proteinItemsTable.mainDishTypeId, Number(mainDishTypeId))),
+  ]);
+
+  if (availableSides.length > 0 && (!Array.isArray(sideIds) || sideIds.length === 0)) {
     res.status(400).json({ error: "At least one side must be selected" });
     return;
   }
-  if (!Array.isArray(proteinIds) || proteinIds.length === 0) {
+  if (availableProteins.length > 0 && (!Array.isArray(proteinIds) || proteinIds.length === 0)) {
     res.status(400).json({ error: "At least one protein must be selected" });
     return;
   }
@@ -245,8 +267,12 @@ router.post("/orders", async (req, res): Promise<void> => {
   }
 
   const [sideItemRows, proteinItemRows] = await Promise.all([
-    db.select().from(sideItemsTable).where(inArray(sideItemsTable.id, sideIds.map(Number))),
-    db.select().from(proteinItemsTable).where(inArray(proteinItemsTable.id, proteinIds.map(Number))),
+    sideIds?.length > 0 
+      ? db.select().from(sideItemsTable).where(inArray(sideItemsTable.id, sideIds.map(Number))) 
+      : Promise.resolve([]),
+    proteinIds?.length > 0 
+      ? db.select().from(proteinItemsTable).where(inArray(proteinItemsTable.id, proteinIds.map(Number))) 
+      : Promise.resolve([]),
   ]);
 
   const [order] = await db

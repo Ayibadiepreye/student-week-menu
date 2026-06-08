@@ -4,31 +4,52 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { Search } from "lucide-react";
+import { Search, RefreshCw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function OrderHistory() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [vendorFilter, setVendorFilter] = useState<string>("all");
+  const [isReloading, setIsReloading] = useState(false);
+  const { toast } = useToast();
 
-  const { data: vendors } = useGetVendors({}, { query: { queryKey: getGetVendorsQueryKey({}) } });
+  const { data: vendors, refetch: refetchVendors } = useGetVendors({}, { query: { queryKey: getGetVendorsQueryKey({}), refetchInterval: 10000 } });
 
   const params: Record<string, unknown> = {};
   if (search) params.search = search;
   if (statusFilter !== "all") params.status = statusFilter;
   if (vendorFilter !== "all") params.vendorId = Number(vendorFilter);
 
-  const { data: orders, isLoading } = useGetOrderHistory(
+  const { data: orders, isLoading, refetch: refetchOrders } = useGetOrderHistory(
     params,
-    { query: { queryKey: getGetOrderHistoryQueryKey(params) } }
+    { query: { queryKey: getGetOrderHistoryQueryKey(params), refetchInterval: 10000 } }
   );
+
+  const handleReload = async () => {
+    setIsReloading(true);
+    await Promise.all([refetchVendors(), refetchOrders()]);
+    setIsReloading(false);
+    toast({ title: "Data refreshed successfully!" });
+  };
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold text-white tracking-tight">Order History</h2>
-        <p className="text-muted-foreground mt-1">Search and filter all orders from the event.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Order History</h2>
+          <p className="text-muted-foreground mt-1">Search and filter all orders from the event.</p>
+        </div>
+        <Button
+          onClick={handleReload}
+          disabled={isReloading}
+          className="bg-primary hover:bg-primary/90 text-white"
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isReloading ? "animate-spin" : ""}`} />
+          Reload
+        </Button>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -37,7 +58,7 @@ export default function OrderHistory() {
           <Input
             placeholder="Search by name or table..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-background/50 border-primary/20 text-white placeholder:text-muted-foreground"
           />
         </div>
@@ -57,7 +78,7 @@ export default function OrderHistory() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Vendors</SelectItem>
-            {vendors?.map(v => (
+            {vendors?.map((v) => (
               <SelectItem key={v.id} value={v.id.toString()}>{v.name}</SelectItem>
             ))}
           </SelectContent>
@@ -88,7 +109,7 @@ export default function OrderHistory() {
                   <td colSpan={7} className="px-6 py-12 text-center text-zinc-500">Loading...</td>
                 </tr>
               )}
-              {!isLoading && orders?.map(order => (
+              {!isLoading && orders?.map((order) => (
                 <tr key={order.id} className="hover:bg-white/[0.02] transition-colors">
                   <td className="px-4 py-4 font-mono text-zinc-400 text-xs">#{order.id.toString().padStart(4, "0")}</td>
                   <td className="px-4 py-4 font-medium text-white">{order.customerName}</td>
@@ -100,12 +121,12 @@ export default function OrderHistory() {
                         <div className="text-white text-xs font-medium">{order.mainDishTypeName}</div>
                       )}
                       <div className="flex flex-wrap gap-1">
-                        {order.sides.map(s => (
+                        {order.sides.map((s) => (
                           <Badge key={s.id} variant="outline" className="text-xs border-primary/10 text-zinc-400 font-normal">
                             {s.sideName}
                           </Badge>
                         ))}
-                        {order.proteins.map(p => (
+                        {order.proteins.map((p) => (
                           <Badge key={p.id} variant="outline" className="text-xs border-amber-500/20 text-amber-200/70 font-normal">
                             {p.proteinName}
                           </Badge>

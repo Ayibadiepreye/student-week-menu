@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { Search, CheckCircle2, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-export default function LiveOrders() {
+export default function UsherLiveOrders() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [search, setSearch] = useState("");

@@ -52,8 +52,15 @@ import type {
   TableOrderGroup,
   TableUpdate,
   Vendor,
+  VendorDashboardStats,
   VendorInput,
-  VendorUpdate
+  VendorUpdate,
+  VerifyAdminPin,
+  VerifyAdminPin200,
+  VerifyUsherPin,
+  VerifyUsherPin200,
+  VerifyVendorPin,
+  VerifyVendorPin200
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -2333,4 +2340,270 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getUpdateConfigMutationOptions(options));
     }
+
+export const getVerifyAdminPinUrl = () => {
+
+
+
+
+  return `/api/auth/admin`
+}
+
+export const verifyAdminPin = async (verifyAdminPin: VerifyAdminPin, options?: RequestInit): Promise<VerifyAdminPin200> => {
+
+  return customFetch<VerifyAdminPin200>(getVerifyAdminPinUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      verifyAdminPin,)
+  }
+);}
+
+
+
+
+export const getVerifyAdminPinMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyAdminPin>>, TError,{data: BodyType<VerifyAdminPin>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyAdminPin>>, TError,{data: BodyType<VerifyAdminPin>}, TContext> => {
+
+const mutationKey = ['verifyAdminPin'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyAdminPin>>, {data: BodyType<VerifyAdminPin>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  verifyAdminPin(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyAdminPinMutationResult = NonNullable<Awaited<ReturnType<typeof verifyAdminPin>>>
+    export type VerifyAdminPinMutationBody = BodyType<VerifyAdminPin>
+    export type VerifyAdminPinMutationError = ErrorType<void>
+
+    export const useVerifyAdminPin = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyAdminPin>>, TError,{data: BodyType<VerifyAdminPin>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof verifyAdminPin>>,
+        TError,
+        {data: BodyType<VerifyAdminPin>},
+        TContext
+      > => {
+      return useMutation(getVerifyAdminPinMutationOptions(options));
+    }
+
+export const getVerifyUsherPinUrl = () => {
+
+
+
+
+  return `/api/auth/usher`
+}
+
+export const verifyUsherPin = async (verifyUsherPin: VerifyUsherPin, options?: RequestInit): Promise<VerifyUsherPin200> => {
+
+  return customFetch<VerifyUsherPin200>(getVerifyUsherPinUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      verifyUsherPin,)
+  }
+);}
+
+
+
+
+export const getVerifyUsherPinMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyUsherPin>>, TError,{data: BodyType<VerifyUsherPin>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyUsherPin>>, TError,{data: BodyType<VerifyUsherPin>}, TContext> => {
+
+const mutationKey = ['verifyUsherPin'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyUsherPin>>, {data: BodyType<VerifyUsherPin>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  verifyUsherPin(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyUsherPinMutationResult = NonNullable<Awaited<ReturnType<typeof verifyUsherPin>>>
+    export type VerifyUsherPinMutationBody = BodyType<VerifyUsherPin>
+    export type VerifyUsherPinMutationError = ErrorType<void>
+
+    export const useVerifyUsherPin = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyUsherPin>>, TError,{data: BodyType<VerifyUsherPin>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof verifyUsherPin>>,
+        TError,
+        {data: BodyType<VerifyUsherPin>},
+        TContext
+      > => {
+      return useMutation(getVerifyUsherPinMutationOptions(options));
+    }
+
+export const getVerifyVendorPinUrl = () => {
+
+
+
+
+  return `/api/auth/vendor`
+}
+
+export const verifyVendorPin = async (verifyVendorPin: VerifyVendorPin, options?: RequestInit): Promise<VerifyVendorPin200> => {
+
+  return customFetch<VerifyVendorPin200>(getVerifyVendorPinUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      verifyVendorPin,)
+  }
+);}
+
+
+
+
+export const getVerifyVendorPinMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyVendorPin>>, TError,{data: BodyType<VerifyVendorPin>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyVendorPin>>, TError,{data: BodyType<VerifyVendorPin>}, TContext> => {
+
+const mutationKey = ['verifyVendorPin'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyVendorPin>>, {data: BodyType<VerifyVendorPin>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  verifyVendorPin(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyVendorPinMutationResult = NonNullable<Awaited<ReturnType<typeof verifyVendorPin>>>
+    export type VerifyVendorPinMutationBody = BodyType<VerifyVendorPin>
+    export type VerifyVendorPinMutationError = ErrorType<void>
+
+    export const useVerifyVendorPin = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyVendorPin>>, TError,{data: BodyType<VerifyVendorPin>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof verifyVendorPin>>,
+        TError,
+        {data: BodyType<VerifyVendorPin>},
+        TContext
+      > => {
+      return useMutation(getVerifyVendorPinMutationOptions(options));
+    }
+
+export const getGetVendorDashboardStatsUrl = (vendorId: number,) => {
+
+
+
+
+  return `/api/vendor-dashboard/${vendorId}/stats`
+}
+
+export const getVendorDashboardStats = async (vendorId: number, options?: RequestInit): Promise<VendorDashboardStats> => {
+
+  return customFetch<VendorDashboardStats>(getGetVendorDashboardStatsUrl(vendorId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetVendorDashboardStatsQueryKey = (vendorId: number,) => {
+    return [
+    `/api/vendor-dashboard/${vendorId}/stats`
+    ] as const;
+    }
+
+
+export const getGetVendorDashboardStatsQueryOptions = <TData = Awaited<ReturnType<typeof getVendorDashboardStats>>, TError = ErrorType<unknown>>(vendorId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getVendorDashboardStats>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetVendorDashboardStatsQueryKey(vendorId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getVendorDashboardStats>>> = ({ signal }) => getVendorDashboardStats(vendorId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(vendorId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getVendorDashboardStats>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetVendorDashboardStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getVendorDashboardStats>>>
+export type GetVendorDashboardStatsQueryError = ErrorType<unknown>
+
+
+
+export function useGetVendorDashboardStats<TData = Awaited<ReturnType<typeof getVendorDashboardStats>>, TError = ErrorType<unknown>>(
+ vendorId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getVendorDashboardStats>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetVendorDashboardStatsQueryOptions(vendorId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 

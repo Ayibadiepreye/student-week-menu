@@ -30,6 +30,7 @@ export const GetVendorsResponseItem = zod.object({
   "imageUrl": zod.string().nullish(),
   "isActive": zod.boolean(),
   "maxPlates": zod.number(),
+  "vendorPin": zod.string().nullish(),
   "orderCount": zod.number(),
   "createdAt": zod.string()
 })
@@ -64,7 +65,8 @@ export const UpdateVendorBody = zod.object({
   "description": zod.string().nullish(),
   "imageUrl": zod.string().nullish(),
   "isActive": zod.boolean().optional(),
-  "maxPlates": zod.number().min(updateVendorBodyMaxPlatesMin).optional()
+  "maxPlates": zod.number().min(updateVendorBodyMaxPlatesMin).optional(),
+  "vendorPin": zod.string().nullish()
 })
 
 export const UpdateVendorResponse = zod.object({
@@ -74,6 +76,7 @@ export const UpdateVendorResponse = zod.object({
   "imageUrl": zod.string().nullish(),
   "isActive": zod.boolean(),
   "maxPlates": zod.number(),
+  "vendorPin": zod.string().nullish(),
   "orderCount": zod.number(),
   "createdAt": zod.string()
 })
@@ -580,6 +583,8 @@ export const GetConfigResponse = zod.object({
   "maxSides": zod.number(),
   "maxProteins": zod.number(),
   "allowMultipleMains": zod.boolean(),
+  "adminPin": zod.string().nullish(),
+  "usherPin": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -592,7 +597,9 @@ export const GetConfigResponse = zod.object({
 export const UpdateConfigBody = zod.object({
   "maxSides": zod.number().min(1).optional(),
   "maxProteins": zod.number().min(1).optional(),
-  "allowMultipleMains": zod.boolean().optional()
+  "allowMultipleMains": zod.boolean().optional(),
+  "adminPin": zod.string().nullish(),
+  "usherPin": zod.string().nullish()
 })
 
 export const UpdateConfigResponse = zod.object({
@@ -600,8 +607,85 @@ export const UpdateConfigResponse = zod.object({
   "maxSides": zod.number(),
   "maxProteins": zod.number(),
   "allowMultipleMains": zod.boolean(),
+  "adminPin": zod.string().nullish(),
+  "usherPin": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
+})
+
+
+
+
+
+export const VerifyAdminPinBody = zod.object({
+  "pin": zod.string().min(1)
+})
+
+export const VerifyAdminPinResponse = zod.object({
+  "valid": zod.boolean()
+})
+
+
+
+
+
+export const VerifyUsherPinBody = zod.object({
+  "pin": zod.string().min(1)
+})
+
+export const VerifyUsherPinResponse = zod.object({
+  "valid": zod.boolean()
+})
+
+
+
+
+
+export const VerifyVendorPinBody = zod.object({
+  "pin": zod.string().min(1)
+})
+
+export const VerifyVendorPinResponse = zod.object({
+  "valid": zod.boolean(),
+  "vendor": zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "maxPlates": zod.number(),
+  "vendorPin": zod.string().nullish(),
+  "orderCount": zod.number(),
+  "createdAt": zod.string()
+})
+})
+
+
+export const GetVendorDashboardStatsParams = zod.object({
+  "vendorId": zod.coerce.number()
+})
+
+export const GetVendorDashboardStatsResponse = zod.object({
+  "totalOrders": zod.number(),
+  "pendingOrders": zod.number(),
+  "servedOrders": zod.number(),
+  "remainingPlates": zod.number(),
+  "popularMainDishes": zod.array(zod.object({
+  "name": zod.string(),
+  "count": zod.number()
+})).optional(),
+  "popularMainDishTypes": zod.array(zod.object({
+  "name": zod.string(),
+  "count": zod.number()
+})).optional(),
+  "popularSides": zod.array(zod.object({
+  "name": zod.string(),
+  "count": zod.number()
+})).optional(),
+  "popularProteins": zod.array(zod.object({
+  "name": zod.string(),
+  "count": zod.number()
+})).optional()
 })
 
 

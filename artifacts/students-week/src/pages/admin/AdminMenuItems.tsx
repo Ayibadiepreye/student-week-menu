@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/collapsible";
 import {
   ChevronDown, ChevronRight, Plus, Trash2, Edit2, Settings2,
-  Layers, Utensils, Beef, SlidersHorizontal,
+  Layers, Utensils, Beef, SlidersHorizontal, RefreshCw,
 } from "lucide-react";
 import type { MainDishFull, MainDishTypeFull, SideItem, ProteinItem } from "@workspace/api-client-react";
 import { ImageUpload } from "@/components/ImageUpload";
@@ -86,6 +86,7 @@ export default function AdminMenuItems() {
   const [openDishes, setOpenDishes] = useState<Set<number>>(new Set());
   const [openTypes, setOpenTypes] = useState<Set<number>>(new Set());
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [isReloading, setIsReloading] = useState(false);
 
   const [newDishForm, setNewDishForm] = useState<{ vendorId: number; name: string } | null>(null);
   const [newTypeForm, setNewTypeForm] = useState<{ dishId: number; name: string; imageUrl: string } | null>(null);
@@ -93,8 +94,15 @@ export default function AdminMenuItems() {
   const [newProteinForm, setNewProteinForm] = useState<{ typeId: number; dishId: number; name: string; imageUrl: string } | null>(null);
   const [configDialog, setConfigDialog] = useState<{ typeId: number; maxSides: number; maxProteins: number } | null>(null);
 
-  const { data: vendors } = useGetVendors({}, { query: { queryKey: getGetVendorsQueryKey({}) } });
-  const { data: allDishes } = useGetMainDishes({}, { query: { queryKey: getGetMainDishesQueryKey({}) } });
+  const { data: vendors, refetch: refetchVendors } = useGetVendors({}, { query: { queryKey: getGetVendorsQueryKey({}), refetchInterval: 10000 } });
+  const { data: allDishes, refetch: refetchDishes } = useGetMainDishes({}, { query: { queryKey: getGetMainDishesQueryKey({}), refetchInterval: 10000 } });
+
+  const handleReload = async () => {
+    setIsReloading(true);
+    await Promise.all([refetchVendors(), refetchDishes()]);
+    setIsReloading(false);
+    toast({ title: "Data refreshed successfully!" });
+  };
 
   const createDish = useCreateMainDish();
   const updateDish = useUpdateMainDish();
@@ -136,9 +144,19 @@ export default function AdminMenuItems() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-white tracking-tight">Menu Items</h2>
-        <p className="text-muted-foreground mt-1">Manage vendors › main dishes › types › sides &amp; proteins. Sides and proteins are configured per type.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Menu Items</h2>
+          <p className="text-muted-foreground mt-1">Manage vendors › main dishes › types › sides &amp; proteins. Sides and proteins are configured per type.</p>
+        </div>
+        <Button 
+          onClick={handleReload} 
+          disabled={isReloading} 
+          className="bg-primary hover:bg-primary/90 text-white"
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isReloading ? "animate-spin" : ""}`} />
+          Reload
+        </Button>
       </div>
 
       {vendors?.length === 0 && (
@@ -219,7 +237,13 @@ export default function AdminMenuItems() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="border-primary/20 text-white hover:bg-white/5">Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white" onClick={confirmDelete}>Delete</AlertDialogAction>
+            <AlertDialogAction 
+              className="bg-red-600 hover:bg-red-700 text-white" 
+              onClick={confirmDelete}
+              disabled={deleteDish.isPending || deleteType.isPending || deleteSide.isPending || deleteProtein.isPending}
+            >
+              {(deleteDish.isPending || deleteType.isPending || deleteSide.isPending || deleteProtein.isPending) ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -237,7 +261,7 @@ export default function AdminMenuItems() {
             />
             <Button
               className="w-full bg-primary hover:bg-primary/90"
-              disabled={!newDishForm?.name?.trim()}
+              disabled={!newDishForm?.name?.trim() || createDish.isPending}
               onClick={() => {
                 if (!newDishForm) return;
                 createDish.mutate(
@@ -245,7 +269,7 @@ export default function AdminMenuItems() {
                   { onSuccess: () => { invalidate(); setNewDishForm(null); toast({ title: "Main dish added" }); } }
                 );
               }}
-            >Create</Button>
+            >{createDish.isPending ? "Creating..." : "Create"}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -268,7 +292,7 @@ export default function AdminMenuItems() {
             />
             <Button
               className="w-full bg-primary hover:bg-primary/90"
-              disabled={!newTypeForm?.name?.trim()}
+              disabled={!newTypeForm?.name?.trim() || createType.isPending}
               onClick={() => {
                 if (!newTypeForm) return;
                 createType.mutate(
@@ -276,7 +300,7 @@ export default function AdminMenuItems() {
                   { onSuccess: () => { invalidate(); setNewTypeForm(null); toast({ title: "Type added" }); } }
                 );
               }}
-            >Create</Button>
+            >{createType.isPending ? "Creating..." : "Create"}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -309,7 +333,7 @@ export default function AdminMenuItems() {
             </div>
             <Button
               className="w-full bg-primary hover:bg-primary/90"
-              disabled={!newSideForm?.name?.trim()}
+              disabled={!newSideForm?.name?.trim() || createSide.isPending}
               onClick={() => {
                 if (!newSideForm) return;
                 createSide.mutate(
@@ -317,7 +341,7 @@ export default function AdminMenuItems() {
                   { onSuccess: () => { invalidate(); setNewSideForm(null); toast({ title: "Side item added" }); } }
                 );
               }}
-            >Create</Button>
+            >{createSide.isPending ? "Creating..." : "Create"}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -340,7 +364,7 @@ export default function AdminMenuItems() {
             />
             <Button
               className="w-full bg-primary hover:bg-primary/90"
-              disabled={!newProteinForm?.name?.trim()}
+              disabled={!newProteinForm?.name?.trim() || createProtein.isPending}
               onClick={() => {
                 if (!newProteinForm) return;
                 createProtein.mutate(
@@ -348,7 +372,7 @@ export default function AdminMenuItems() {
                   { onSuccess: () => { invalidate(); setNewProteinForm(null); toast({ title: "Protein added" }); } }
                 );
               }}
-            >Create</Button>
+            >{createProtein.isPending ? "Creating..." : "Create"}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -379,6 +403,7 @@ export default function AdminMenuItems() {
             </div>
             <Button
               className="w-full bg-primary hover:bg-primary/90"
+              disabled={updateConfig.isPending}
               onClick={() => {
                 if (!configDialog) return;
                 updateConfig.mutate(
@@ -386,7 +411,7 @@ export default function AdminMenuItems() {
                   { onSuccess: () => { invalidate(); setConfigDialog(null); toast({ title: "Config saved" }); } }
                 );
               }}
-            >Save Config</Button>
+            >{updateConfig.isPending ? "Saving..." : "Save Config"}</Button>
           </div>
         </DialogContent>
       </Dialog>
