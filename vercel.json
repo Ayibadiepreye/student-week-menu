@@ -1,6 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "pnpm --filter @workspace/students-week build",
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm build",
   "outputDirectory": "artifacts/students-week/dist/public",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" },

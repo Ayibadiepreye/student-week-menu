@@ -1,5 +1,3 @@
-import app from "../artifacts/api-server/src/app";
-
-export default async function handler(req: any, res: any) {
-  await app(req, res);
-}
+// @ts-nocheck
+import app from "../artifacts/api-server/src/vercel";
+export default app;
