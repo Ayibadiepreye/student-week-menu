@@ -170,15 +170,21 @@ function Router() {
       <Route path={ROUTES.MENU} component={Menu} />
       <Route path={ROUTES.ORDER_COMPLETE} component={OrderComplete} />
 
-      {/* Admin routes - more specific first! */}
-      <Route path={`${ROUTES.ADMIN}/*`} component={AdminRoutes} />
+      {/* Admin routes */}
       <Route path={ROUTES.ADMIN_LOGIN} component={AdminLoginPage} />
+      <Route path={ROUTES.ADMIN_DASHBOARD} component={AdminRoutes} />
+      <Route path={ROUTES.ADMIN_VENDORS} component={AdminRoutes} />
+      <Route path={ROUTES.ADMIN_TABLES} component={AdminRoutes} />
+      <Route path={ROUTES.ADMIN_MENU} component={AdminRoutes} />
+      <Route path={ROUTES.ADMIN_HISTORY} component={AdminRoutes} />
 
       {/* Usher routes */}
-      <Route path={`${ROUTES.USHER}/*`} component={UsherRoutes} />
       <Route path={ROUTES.USHER_LOGIN} component={UsherLoginPage} />
+      <Route path={ROUTES.USHER_DASHBOARD} component={UsherRoutes} />
+      <Route path={ROUTES.USHER_TABLES} component={UsherRoutes} />
 
       {/* Vendor routes */}
+      <Route path={ROUTES.VENDOR_LOGIN} component={VendorLoginPage} />
       <Route path={ROUTES.VENDOR_DASHBOARD}>
         {() => (
           <ProtectedVendorRoute>
@@ -186,7 +192,6 @@ function Router() {
           </ProtectedVendorRoute>
         )}
       </Route>
-      <Route path={ROUTES.VENDOR_LOGIN} component={VendorLoginPage} />
 
       <Route component={NotFound} />
     </Switch>
