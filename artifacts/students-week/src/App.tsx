@@ -30,32 +30,111 @@ import { ROUTES } from "@/constants/routes";
 
 const queryClient = new QueryClient();
 
+function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
+  const [, navigate] = useLocation();
+  const isAuthenticated = 
+    localStorage.getItem("adminAuthenticated") === "true" && 
+    localStorage.getItem("adminToken");
+  
+  if (!isAuthenticated) {
+    navigate(ROUTES.ADMIN_LOGIN);
+    return null;
+  }
+  
+  return <>{children}</>;
+}
+
+function ProtectedUsherRoute({ children }: { children: React.ReactNode }) {
+  const [, navigate] = useLocation();
+  const isAuthenticated = 
+    localStorage.getItem("usherAuthenticated") === "true" && 
+    localStorage.getItem("usherToken");
+  
+  if (!isAuthenticated) {
+    navigate(ROUTES.USHER_LOGIN);
+    return null;
+  }
+  
+  return <>{children}</>;
+}
+
+function ProtectedVendorRoute({ children }: { children: React.ReactNode }) {
+  const [, navigate] = useLocation();
+  const isAuthenticated = 
+    localStorage.getItem("vendorAuthenticated") === "true" && 
+    localStorage.getItem("vendorToken");
+  
+  if (!isAuthenticated) {
+    navigate(ROUTES.VENDOR_LOGIN);
+    return null;
+  }
+  
+  return <>{children}</>;
+}
+
 function AdminRoutes() {
   return (
-    <AdminLayout>
-      <Switch>
-        <Route path={ROUTES.ADMIN_DASHBOARD} component={LiveOrders} />
-        <Route path={ROUTES.ADMIN_VENDORS} component={AdminVendors} />
-        <Route path={ROUTES.ADMIN_TABLES} component={AdminTables} />
-        <Route path={ROUTES.ADMIN_MENU} component={AdminMenuItems} />
-        <Route path={ROUTES.ADMIN_HISTORY} component={OrderHistory} />
-      </Switch>
-    </AdminLayout>
+    <ProtectedAdminRoute>
+      <AdminLayout>
+        <Switch>
+          <Route path={ROUTES.ADMIN_DASHBOARD} component={LiveOrders} />
+          <Route path={ROUTES.ADMIN_VENDORS} component={AdminVendors} />
+          <Route path={ROUTES.ADMIN_TABLES} component={AdminTables} />
+          <Route path={ROUTES.ADMIN_MENU} component={AdminMenuItems} />
+          <Route path={ROUTES.ADMIN_HISTORY} component={OrderHistory} />
+        </Switch>
+      </AdminLayout>
+    </ProtectedAdminRoute>
   );
 }
 
 function UsherRoutes() {
   return (
-    <UsherLayout>
-      <Switch>
-        <Route path={ROUTES.USHER_DASHBOARD} component={UsherLiveOrders} />
-        <Route path={ROUTES.USHER_TABLES} component={UsherTables} />
-      </Switch>
-    </UsherLayout>
+    <ProtectedUsherRoute>
+      <UsherLayout>
+        <Switch>
+          <Route path={ROUTES.USHER_DASHBOARD} component={UsherLiveOrders} />
+          <Route path={ROUTES.USHER_TABLES} component={UsherTables} />
+        </Switch>
+      </UsherLayout>
+    </ProtectedUsherRoute>
   );
 }
 
 function Router() {
+  const [, navigate] = useLocation();
+  
+  // Check if already authenticated for login routes
+  const checkAdminAuth = () => {
+    const isAuthenticated = 
+      localStorage.getItem("adminAuthenticated") === "true" && 
+      localStorage.getItem("adminToken");
+    if (isAuthenticated) {
+      navigate(ROUTES.ADMIN_DASHBOARD);
+    }
+    return <AdminLogin />;
+  };
+  
+  const checkUsherAuth = () => {
+    const isAuthenticated = 
+      localStorage.getItem("usherAuthenticated") === "true" && 
+      localStorage.getItem("usherToken");
+    if (isAuthenticated) {
+      navigate(ROUTES.USHER_DASHBOARD);
+    }
+    return <UsherLogin />;
+  };
+  
+  const checkVendorAuth = () => {
+    const isAuthenticated = 
+      localStorage.getItem("vendorAuthenticated") === "true" && 
+      localStorage.getItem("vendorToken");
+    if (isAuthenticated) {
+      navigate(ROUTES.VENDOR_DASHBOARD);
+    }
+    return <VendorLogin />;
+  };
+
   return (
     <Switch>
       <Route path={ROUTES.HOME} component={Landing} />
@@ -63,14 +142,23 @@ function Router() {
       <Route path={ROUTES.MENU} component={Menu} />
       <Route path={ROUTES.ORDER_COMPLETE} component={OrderComplete} />
 
-      <Route path={ROUTES.ADMIN_LOGIN} component={AdminLogin} />
+      {/* Admin routes - more specific first! */}
       <Route path={`${ROUTES.ADMIN}/*`} component={AdminRoutes} />
+      <Route path={ROUTES.ADMIN_LOGIN} children={checkAdminAuth()} />
 
-      <Route path={ROUTES.USHER_LOGIN} component={UsherLogin} />
+      {/* Usher routes */}
       <Route path={`${ROUTES.USHER}/*`} component={UsherRoutes} />
+      <Route path={ROUTES.USHER_LOGIN} children={checkUsherAuth()} />
 
-      <Route path={ROUTES.VENDOR_LOGIN} component={VendorLogin} />
-      <Route path={ROUTES.VENDOR_DASHBOARD} component={VendorDashboard} />
+      {/* Vendor routes */}
+      <Route path={ROUTES.VENDOR_DASHBOARD}>
+        {() => (
+          <ProtectedVendorRoute>
+            <VendorDashboard />
+          </ProtectedVendorRoute>
+        )}
+      </Route>
+      <Route path={ROUTES.VENDOR_LOGIN} children={checkVendorAuth()} />
 
       <Route component={NotFound} />
     </Switch>
