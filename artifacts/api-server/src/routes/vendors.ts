@@ -22,7 +22,6 @@ async function getVendorsWithOrderCounts() {
   const orderCounts = await db
     .select({ vendorId: ordersTable.vendorId, cnt: count() })
     .from(ordersTable)
-    .where(ne(ordersTable.status, "served"))
     .groupBy(ordersTable.vendorId);
 
   const countMap = new Map(orderCounts.map((r) => [r.vendorId, Number(r.cnt)]));
@@ -104,7 +103,7 @@ router.patch("/vendors/:id", async (req, res): Promise<void> => {
   const orderCounts = await db
     .select({ cnt: count() })
     .from(ordersTable)
-    .where(and(eq(ordersTable.vendorId, vendor.id), ne(ordersTable.status, "served")));
+    .where(eq(ordersTable.vendorId, vendor.id));
 
   res.json(
     UpdateVendorResponse.parse({

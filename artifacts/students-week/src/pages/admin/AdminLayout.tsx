@@ -65,7 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   );
 
   return (
-    <div className="min-h-[100dvh] flex flex-col md:flex-row bg-background">
+    <div className="min-h-[100dvh] flex flex-col md:flex-row">
       {/* Mobile Header */}
       <header className="md:hidden flex items-center justify-between p-4 border-b border-primary/20 bg-card/50 backdrop-blur-md sticky top-0 z-20">
         <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
