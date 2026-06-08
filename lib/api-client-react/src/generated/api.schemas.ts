@@ -396,14 +396,17 @@ search?: string;
 
 export type VerifyAdminPin200 = {
   valid: boolean;
+  token?: string;
 };
 
 export type VerifyUsherPin200 = {
   valid: boolean;
+  token?: string;
 };
 
 export type VerifyVendorPin200 = {
   valid: boolean;
+  token?: string;
   vendor: Vendor;
 };
 

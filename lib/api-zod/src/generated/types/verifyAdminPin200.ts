@@ -8,4 +8,5 @@
 
 export type VerifyAdminPin200 = {
   valid: boolean;
+  token?: string;
 };

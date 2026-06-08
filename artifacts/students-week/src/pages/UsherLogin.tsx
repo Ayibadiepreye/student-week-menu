@@ -35,6 +35,9 @@ export default function UsherLogin() {
       const result = await verifyPin.mutateAsync({ data });
       if (result.valid) {
         localStorage.setItem("usherAuthenticated", "true");
+        if (result.token) {
+          localStorage.setItem("usherToken", result.token);
+        }
         navigate(ROUTES.USHER_DASHBOARD);
       } else {
         toast({ title: "Invalid PIN", variant: "destructive" });

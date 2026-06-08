@@ -33,10 +33,15 @@ export default function VendorLogin() {
     setIsSubmitting(true);
     try {
       const result = await verifyPin.mutateAsync({ data });
-      if (result.valid && result.vendor) {
+      if (result.valid) {
         localStorage.setItem("vendorAuthenticated", "true");
-        localStorage.setItem("vendorId", result.vendor.id.toString());
-        localStorage.setItem("vendorName", result.vendor.name);
+        if (result.token) {
+          localStorage.setItem("vendorToken", result.token);
+        }
+        if (result.vendor) {
+          localStorage.setItem("vendorId", result.vendor.id.toString());
+          localStorage.setItem("vendorName", result.vendor.name);
+        }
         navigate(ROUTES.VENDOR_DASHBOARD);
       } else {
         toast({ title: "Invalid PIN", variant: "destructive" });

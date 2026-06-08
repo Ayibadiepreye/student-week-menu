@@ -8,4 +8,5 @@
 
 export type VerifyUsherPin200 = {
   valid: boolean;
+  token?: string;
 };

@@ -622,7 +622,8 @@ export const VerifyAdminPinBody = zod.object({
 })
 
 export const VerifyAdminPinResponse = zod.object({
-  "valid": zod.boolean()
+  "valid": zod.boolean(),
+  "token": zod.string().optional()
 })
 
 
@@ -634,7 +635,8 @@ export const VerifyUsherPinBody = zod.object({
 })
 
 export const VerifyUsherPinResponse = zod.object({
-  "valid": zod.boolean()
+  "valid": zod.boolean(),
+  "token": zod.string().optional()
 })
 
 
@@ -647,6 +649,7 @@ export const VerifyVendorPinBody = zod.object({
 
 export const VerifyVendorPinResponse = zod.object({
   "valid": zod.boolean(),
+  "token": zod.string().optional(),
   "vendor": zod.object({
   "id": zod.number(),
   "name": zod.string(),

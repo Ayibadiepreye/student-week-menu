@@ -9,5 +9,6 @@ import type { Vendor } from './vendor';
 
 export type VerifyVendorPin200 = {
   valid: boolean;
+  token?: string;
   vendor: Vendor;
 };
