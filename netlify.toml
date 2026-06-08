@@ -1,15 +1,11 @@
 [build]
   base = "artifacts/students-week"
-  command = "pnpm run build"
   publish = "dist/public"
+  command = "pnpm build"
 
 [build.environment]
   NODE_VERSION = "20"
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
-  status = 200
+  NPM_FLAGS = "--prefix=../.."
 
 [[redirects]]
   from = "/*"
