@@ -30,19 +30,23 @@ export default function AdminLogin() {
   });
 
   const onSubmit = async (data: AdminLoginFormData) => {
+    console.log("Submitting data:", data);
     setIsSubmitting(true);
     try {
       const result = await verifyPin.mutateAsync({ data });
+      console.log("Verify result:", result);
       if (result.valid) {
         localStorage.setItem("adminAuthenticated", "true");
         if (result.token) {
           localStorage.setItem("adminToken", result.token);
         }
+        console.log("Navigating to:", ROUTES.ADMIN_DASHBOARD);
         navigate(ROUTES.ADMIN_DASHBOARD);
       } else {
         toast({ title: "Invalid PIN", variant: "destructive" });
       }
     } catch (error) {
+      console.error("Error verifying PIN:", error);
       toast({ title: "Error verifying PIN", variant: "destructive" });
     } finally {
       setIsSubmitting(false);

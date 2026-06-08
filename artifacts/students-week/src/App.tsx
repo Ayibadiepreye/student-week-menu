@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { StarfieldBackground } from "@/components/layout/StarfieldBackground";
+import { useEffect } from "react";
 
 import Landing from "@/pages/Landing";
 import Vendors from "@/pages/Vendors";
@@ -36,8 +37,13 @@ function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
     localStorage.getItem("adminAuthenticated") === "true" && 
     localStorage.getItem("adminToken");
   
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate(ROUTES.ADMIN_LOGIN);
+    }
+  }, [isAuthenticated, navigate]);
+  
   if (!isAuthenticated) {
-    navigate(ROUTES.ADMIN_LOGIN);
     return null;
   }
   
@@ -50,8 +56,13 @@ function ProtectedUsherRoute({ children }: { children: React.ReactNode }) {
     localStorage.getItem("usherAuthenticated") === "true" && 
     localStorage.getItem("usherToken");
   
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate(ROUTES.USHER_LOGIN);
+    }
+  }, [isAuthenticated, navigate]);
+  
   if (!isAuthenticated) {
-    navigate(ROUTES.USHER_LOGIN);
     return null;
   }
   
@@ -64,12 +75,62 @@ function ProtectedVendorRoute({ children }: { children: React.ReactNode }) {
     localStorage.getItem("vendorAuthenticated") === "true" && 
     localStorage.getItem("vendorToken");
   
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate(ROUTES.VENDOR_LOGIN);
+    }
+  }, [isAuthenticated, navigate]);
+  
   if (!isAuthenticated) {
-    navigate(ROUTES.VENDOR_LOGIN);
     return null;
   }
   
   return <>{children}</>;
+}
+
+function AdminLoginPage() {
+  const [, navigate] = useLocation();
+  
+  useEffect(() => {
+    const isAuthenticated = 
+      localStorage.getItem("adminAuthenticated") === "true" && 
+      localStorage.getItem("adminToken");
+    if (isAuthenticated) {
+      navigate(ROUTES.ADMIN_DASHBOARD);
+    }
+  }, [navigate]);
+  
+  return <AdminLogin />;
+}
+
+function UsherLoginPage() {
+  const [, navigate] = useLocation();
+  
+  useEffect(() => {
+    const isAuthenticated = 
+      localStorage.getItem("usherAuthenticated") === "true" && 
+      localStorage.getItem("usherToken");
+    if (isAuthenticated) {
+      navigate(ROUTES.USHER_DASHBOARD);
+    }
+  }, [navigate]);
+  
+  return <UsherLogin />;
+}
+
+function VendorLoginPage() {
+  const [, navigate] = useLocation();
+  
+  useEffect(() => {
+    const isAuthenticated = 
+      localStorage.getItem("vendorAuthenticated") === "true" && 
+      localStorage.getItem("vendorToken");
+    if (isAuthenticated) {
+      navigate(ROUTES.VENDOR_DASHBOARD);
+    }
+  }, [navigate]);
+  
+  return <VendorLogin />;
 }
 
 function AdminRoutes() {
@@ -102,39 +163,6 @@ function UsherRoutes() {
 }
 
 function Router() {
-  const [, navigate] = useLocation();
-  
-  // Check if already authenticated for login routes
-  const checkAdminAuth = () => {
-    const isAuthenticated = 
-      localStorage.getItem("adminAuthenticated") === "true" && 
-      localStorage.getItem("adminToken");
-    if (isAuthenticated) {
-      navigate(ROUTES.ADMIN_DASHBOARD);
-    }
-    return <AdminLogin />;
-  };
-  
-  const checkUsherAuth = () => {
-    const isAuthenticated = 
-      localStorage.getItem("usherAuthenticated") === "true" && 
-      localStorage.getItem("usherToken");
-    if (isAuthenticated) {
-      navigate(ROUTES.USHER_DASHBOARD);
-    }
-    return <UsherLogin />;
-  };
-  
-  const checkVendorAuth = () => {
-    const isAuthenticated = 
-      localStorage.getItem("vendorAuthenticated") === "true" && 
-      localStorage.getItem("vendorToken");
-    if (isAuthenticated) {
-      navigate(ROUTES.VENDOR_DASHBOARD);
-    }
-    return <VendorLogin />;
-  };
-
   return (
     <Switch>
       <Route path={ROUTES.HOME} component={Landing} />
@@ -144,11 +172,11 @@ function Router() {
 
       {/* Admin routes - more specific first! */}
       <Route path={`${ROUTES.ADMIN}/*`} component={AdminRoutes} />
-      <Route path={ROUTES.ADMIN_LOGIN} children={checkAdminAuth()} />
+      <Route path={ROUTES.ADMIN_LOGIN} component={AdminLoginPage} />
 
       {/* Usher routes */}
       <Route path={`${ROUTES.USHER}/*`} component={UsherRoutes} />
-      <Route path={ROUTES.USHER_LOGIN} children={checkUsherAuth()} />
+      <Route path={ROUTES.USHER_LOGIN} component={UsherLoginPage} />
 
       {/* Vendor routes */}
       <Route path={ROUTES.VENDOR_DASHBOARD}>
@@ -158,7 +186,7 @@ function Router() {
           </ProtectedVendorRoute>
         )}
       </Route>
-      <Route path={ROUTES.VENDOR_LOGIN} children={checkVendorAuth()} />
+      <Route path={ROUTES.VENDOR_LOGIN} component={VendorLoginPage} />
 
       <Route component={NotFound} />
     </Switch>
