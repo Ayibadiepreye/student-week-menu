@@ -17,6 +17,7 @@ import AdminVendors from "@/pages/admin/AdminVendors";
 import AdminTables from "@/pages/admin/AdminTables";
 import AdminMenuItems from "@/pages/admin/AdminMenuItems";
 import OrderHistory from "@/pages/admin/OrderHistory";
+import AdminConfig from "@/pages/admin/AdminConfig";
 import AdminLogin from "@/pages/AdminLogin";
 
 import UsherLogin from "@/pages/UsherLogin";
@@ -143,6 +144,7 @@ function AdminRoutes() {
           <Route path={ROUTES.ADMIN_TABLES} component={AdminTables} />
           <Route path={ROUTES.ADMIN_MENU} component={AdminMenuItems} />
           <Route path={ROUTES.ADMIN_HISTORY} component={OrderHistory} />
+          <Route path={ROUTES.ADMIN_CONFIG} component={AdminConfig} />
         </Switch>
       </AdminLayout>
     </ProtectedAdminRoute>
@@ -177,6 +179,7 @@ function Router() {
       <Route path={ROUTES.ADMIN_TABLES} component={AdminRoutes} />
       <Route path={ROUTES.ADMIN_MENU} component={AdminRoutes} />
       <Route path={ROUTES.ADMIN_HISTORY} component={AdminRoutes} />
+      <Route path={ROUTES.ADMIN_CONFIG} component={AdminRoutes} />
 
       {/* Usher routes */}
       <Route path={ROUTES.USHER_LOGIN} component={UsherLoginPage} />

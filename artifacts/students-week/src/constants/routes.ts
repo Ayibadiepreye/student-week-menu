@@ -11,6 +11,7 @@ export const ROUTES = {
   ADMIN_TABLES: "/x7f4k9-admin/tables",
   ADMIN_MENU: "/x7f4k9-admin/menu",
   ADMIN_HISTORY: "/x7f4k9-admin/history",
+  ADMIN_CONFIG: "/x7f4k9-admin/config",
   // Usher Routes (Obscured)
   USHER_LOGIN: "/m3p8q2-usher-login",
   USHER: "/m3p8q2-usher",

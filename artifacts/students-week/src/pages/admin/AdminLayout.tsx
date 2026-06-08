@@ -28,6 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: ROUTES.ADMIN_TABLES, label: "Tables" },
     { href: ROUTES.ADMIN_MENU, label: "Menu Items" },
     { href: ROUTES.ADMIN_HISTORY, label: "Order History" },
+    { href: ROUTES.ADMIN_CONFIG, label: "Configuration" },
   ];
 
   const handleLogout = () => {

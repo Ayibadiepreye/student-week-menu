@@ -36,7 +36,7 @@ export default function AdminConfig() {
 
   const form = useForm<z.infer<typeof configSchema>>({
     resolver: zodResolver(configSchema),
-    defaultValues: { maxSides: 2, maxProteins: 1, allowMultipleMains: false },
+    defaultValues: { maxSides: 2, maxProteins: 1, allowMultipleMains: false, adminPin: "", usherPin: "" },
   });
 
   const initialized = useRef(false);
